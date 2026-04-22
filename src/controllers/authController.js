@@ -31,10 +31,21 @@ exports.cadastro = async (req, res) => {
         });
 
         await user.save();
-        await enviarCodigo(email, codigo);
+
+        console.log('Tentando enviar email para:', email);
+        console.log('EMAIL_USER:', process.env.EMAIL_USER);
+        console.log('EMAIL_PASS definido:', !!process.env.EMAIL_PASS);
+
+        try {
+            await enviarCodigo(email, codigo);
+            console.log('Email enviado com sucesso!');
+        } catch (emailErr) {
+            console.error('ERRO AO ENVIAR EMAIL:', emailErr.message);
+        }
 
         res.status(201).json({ mensagem: 'Código enviado para seu email!' });
     } catch (e) {
+        console.error('ERRO NO CADASTRO:', e.message);
         res.status(400).json({ erro: 'Usuário ou email já existe' });
     }
 };
