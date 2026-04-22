@@ -17,6 +17,9 @@
         .link span { color: #22c55e; }
         .erro { color: #f87171; font-size: 13px; text-align: center; margin-top: 8px; display: none; }
         .sucesso { color: #22c55e; font-size: 13px; text-align: center; margin-top: 8px; display: none; }
+        .codigo-box { background: #1a2a1f; border: 1px solid #22c55e; border-radius: 8px; padding: 12px; text-align: center; margin-top: 12px; display: none; }
+        .codigo-box p { font-size: 12px; color: #888; margin-bottom: 6px; }
+        .codigo-box span { font-size: 28px; font-weight: bold; letter-spacing: 8px; color: #22c55e; }
         #app { display: none; width: 100vw; height: 100vh; }
         .layout { display: flex; height: 100vh; }
         .sidebar { width: 280px; background: #111; border-right: 1px solid #222; display: flex; flex-direction: column; }
@@ -62,7 +65,7 @@
         <button class="btn-main" onclick="login()">Entrar</button>
         <div class="erro" id="login-erro"></div>
         <div class="link" onclick="mostrarTela('tela-cadastro')">Não tem conta? <span>Cadastrar</span></div>
-        <div class="link" onclick="mostrarTela('tela-verificar')">Recebeu um código? <span>Verificar conta</span></div>
+        <div class="link" onclick="mostrarTela('tela-verificar')">Já tem um código? <span>Verificar conta</span></div>
     </div>
     <div id="tela-cadastro" style="display:none">
         <input type="text" id="cad-username" placeholder="Nome de usuário">
@@ -71,10 +74,14 @@
         <button class="btn-main" onclick="cadastro()">Cadastrar</button>
         <div class="erro" id="cad-erro"></div>
         <div class="sucesso" id="cad-sucesso"></div>
+        <div class="codigo-box" id="codigo-box">
+            <p>Seu código de verificação:</p>
+            <span id="codigo-display"></span>
+        </div>
         <div class="link" onclick="mostrarTela('tela-login')">Já tem conta? <span>Entrar</span></div>
     </div>
     <div id="tela-verificar" style="display:none">
-        <p style="color:#888;font-size:13px;margin-bottom:12px;text-align:center;">Digite o código enviado para seu email</p>
+        <p style="color:#888;font-size:13px;margin-bottom:12px;text-align:center;">Digite o código de verificação</p>
         <input type="text" id="ver-codigo" placeholder="Código de 6 dígitos" maxlength="6">
         <input type="email" id="ver-email" placeholder="Seu email">
         <button class="btn-main" onclick="verificar()">Verificar</button>
@@ -159,11 +166,11 @@
         });
         const data = await res.json();
         if (res.status === 201) {
-            mostrarSucesso('cad-sucesso', data.mensagem);
-            setTimeout(() => {
-                document.getElementById('ver-email').value = email;
-                mostrarTela('tela-verificar');
-            }, 1500);
+            document.getElementById('codigo-display').innerText = data.codigo;
+            document.getElementById('codigo-box').style.display = 'block';
+            mostrarSucesso('cad-sucesso', 'Conta criada! Anote o código abaixo:');
+            document.getElementById('ver-email').value = email;
+            document.getElementById('ver-codigo').value = data.codigo;
         } else mostrarErro('cad-erro', data.erro);
     }
 

@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { enviarCodigo } = require('../email');
 
 function gerarCodigo() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -20,7 +19,7 @@ exports.cadastro = async (req, res) => {
 
         const hash = await bcrypt.hash(senha, 12);
         const codigo = gerarCodigo();
-        const expira = new Date(Date.now() + 10 * 60 * 1000);
+        const expira = new Date(Date.now() + 60 * 60 * 1000);
 
         const user = new User({
             username,
@@ -32,18 +31,7 @@ exports.cadastro = async (req, res) => {
 
         await user.save();
 
-        console.log('Tentando enviar email para:', email);
-        console.log('EMAIL_USER:', process.env.EMAIL_USER);
-        console.log('EMAIL_PASS definido:', !!process.env.EMAIL_PASS);
-
-        try {
-            await enviarCodigo(email, codigo);
-            console.log('Email enviado com sucesso!');
-        } catch (emailErr) {
-            console.error('ERRO AO ENVIAR EMAIL:', emailErr.message);
-        }
-
-        res.status(201).json({ mensagem: 'Código enviado para seu email!' });
+        res.status(201).json({ mensagem: 'Conta criada!', codigo });
     } catch (e) {
         console.error('ERRO NO CADASTRO:', e.message);
         res.status(400).json({ erro: 'Usuário ou email já existe' });
@@ -84,7 +72,7 @@ exports.login = async (req, res) => {
         if (!user) return res.status(401).json({ erro: 'Credenciais inválidas' });
 
         if (!user.verificado) {
-            return res.status(401).json({ erro: 'Conta não verificada. Verifique seu email.' });
+            return res.status(401).json({ erro: 'Conta não verificada.' });
         }
 
         const senhaCorreta = await bcrypt.compare(senha, user.senha);
