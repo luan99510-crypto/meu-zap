@@ -4,10 +4,27 @@ const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 
+import { securityHeaders } from './src/middleware/securityHeaders.js';
 const app = express();
+app.use(securityHeaders);
 const server = http.createServer(app);
+import jwt from 'jsonwebtoken';
 const io = new Server(server);
 
+// Socket.IO authentication middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error('Token ausente'));
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = payload.id;
+    next();
+  } catch (err) {
+    next(new Error('Token inválido'));
+  }
+});
+
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
